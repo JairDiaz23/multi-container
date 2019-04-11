@@ -1,0 +1,22 @@
+sudo: required
+services:
+  - docker
+
+before_install:
+  - docker build -t dkrjair/react-test -f ./client/Docckerfile.dev
+
+script:
+  - docker run dkrjair/react-test npm test -- --coverage
+
+after_success:
+  - docker build -t dkrjair/multi-client ./client
+  - docker build -t dkrjair/multi-nginx ./nginx
+  - docker build -t dkrjair/multi-server ./server
+  - docker build -t dkrjair/multi-worker ./worker
+  #Log in into the docker hub account
+  - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+  # Take those images and push them to docker hub
+  - docker push dkrjair/multi-client
+  - docker push dkrjair/multi-nginx
+  - docker push dkrjair/multi-server
+  - docker push dkrjair/multi-worker
